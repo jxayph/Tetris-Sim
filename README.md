@@ -9,3 +9,8 @@ Modern Tetris simulator with added features for practicing techniques for multip
  - SRS Wallkick Detailed Walkthrough (WIP)
  - Mino picker
  - Full keyboard controls
+
+Adjust window size using ctrl +/-, reset the board with f5.
+
+About:
+I don't really know what I'm doing but I want to share this.
