@@ -41,6 +41,8 @@ var DASDown = 0;
 
 var HDDelay = 0;
 
+var minoCount = [0, 0, 0, 0, 0, 0, 0,]
+
 
 window.onload = function(){
 	canvas = document.getElementById("gameCanvas");
@@ -48,7 +50,7 @@ window.onload = function(){
 	initializeBoard();
 	chooseMino();
 	
-	const FPS=30;
+	const FPS=60;
 		
 	setInterval(function(){
 		if (bagEdit){
@@ -67,6 +69,33 @@ window.onload = function(){
 	
 }
 
+function debugBag(){
+	var charBag = '';
+	for( var i = 0; i < bag.length;i++){
+		charBag += nameKey(bag[bag.length - i - 1] + 1);
+	}
+	console.log(charBag);
+}
+
+
+function bagTest(num, mino){
+	
+	var countArray = [0, 0, 0, 0, 0, 0, 0];
+	for ( var i = 0; i < num; i++){
+		
+		var test = shuffleBag();
+		
+		for ( var j = 0; j < test.length; j++){
+			if ( test[j] == mino ){
+				countArray[j] = countArray[j] + 1;
+			}
+		}
+		
+	}
+	return countArray;
+
+}
+
 function initializeBoard(){
 	for (var col = 0; col < 10; col++){
 		board[col] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
@@ -75,28 +104,28 @@ function initializeBoard(){
 
 function keyPress(e){
 	if(bagEdit){
-		if (e.keyCode == 49){
+		       if (e.keyCode == 49 || e.keyCode == 73){
 			addToBag(0);
 		
-		} else if (e.keyCode == 50){
+		} else if (e.keyCode == 50 || e.keyCode == 74){
 			addToBag(1);
 		
-		} else if (e.keyCode == 51){
+		} else if (e.keyCode == 51 || e.keyCode == 76){
 			addToBag(2);
 		
-		} else if (e.keyCode == 52){
+		} else if (e.keyCode == 52 || e.keyCode == 79){
 			addToBag(3);
 		
-		} else if (e.keyCode == 53){
+		} else if (e.keyCode == 53 || e.keyCode == 83){
 			addToBag(4);
 		
-		} else if (e.keyCode == 54){
+		} else if (e.keyCode == 54 || e.keyCode == 84){
 			addToBag(5);
 		
-		} else if (e.keyCode == 55){
+		} else if (e.keyCode == 55 || e.keyCode == 90){
 			addToBag(6);
 		} else if (e.keyCode == 13){ // Enter is pressed, terminate bagEdit.
-			endBagEdit();
+			endBagEditScratch();
 		}
 		return ;
 	}
@@ -190,12 +219,11 @@ function printLegalPieces(){
 	// that are not in the reqBag are the ones we are allowed to choose.
 	
 	var candidates = [0, 1, 2, 3, 4, 5, 6];
-	var thisBag = bag.length % 7;
 	var legalPieces = ""
 	var numLegal = 0;
-	for ( var i = 0; i < 7; i++){
+	for (var i = 0; i < 7; i++){
 	
-		if (legalPiece(candidates[i])){ // If our candidate is legal...
+		if ( legalPiece(candidates[i]) ){ // If our candidate is legal...
 			numLegal++;
 			if(legalPieces.length == 0){ // If it's the beginning of the string
 				legalPieces = nameKey(candidates[i] + 1);
@@ -206,8 +234,8 @@ function printLegalPieces(){
 			}
 		}
 	}
-	canvasContext.fillText("Press the associated number", 30, 50 );
-	canvasContext.fillText("key to next request one of:", 35, 70 );	
+	canvasContext.fillText("Press the associated key", 40, 50 );
+	canvasContext.fillText("to next request one of:", 50, 70 );	
 	canvasContext.fillText(legalPieces, 105 - 5 * numLegal, 90);
 	
 	canvasContext.fillText("Press enter to end the request.", 25, 400);
@@ -215,6 +243,12 @@ function printLegalPieces(){
 
 function legalPiece(mino){
 	// If we're still looking inside the first bag
+	/*
+		Let's say bag has 11. That means first bag is elements indexed 7, 8, 9, 10.
+		Index this arbitrarily as 
+		[bag.length - 1 - (bag.length % 7) ---> bag.length - 1]
+	*/
+	
 	if (reqBag.length < bag.length % 7){
 		// If it's in the reqBag it's not legal.
 		for ( var i = 0; i < reqBag.length; i++){
@@ -223,16 +257,20 @@ function legalPiece(mino){
 			}
 		}
 		// If it's not in the first bag it's not legal.
+		// [0,1,2,3,4,5,6,0,1,2,3]
+		// idx from 7->10
 		var legal = false;
-		for ( var i = 0; i < bag.length ; i++){
+		var startIdx = bag.length - bag.length % 7
+		//if bag is 11, i from 0 -> 3
+		for ( var i = startIdx; i < bag.length; i++){
 			if (mino == bag[i]){
 				legal = true;
-			}
-					
+			}	
 		}
 		return legal;
-	
 	}
+	
+	//---
 
 	// Not legal if it's within the current bag being requested.
 	var startIdx = (bag.length % 7) + Math.floor ((reqBag.length - (bag.length % 7)) / 7) * 7
@@ -304,6 +342,114 @@ function addToBag(mino){
 	}	
 }
 
+function endBagEditScratch(){
+	
+	// Filling out the bag.
+	var fillArray = []
+	for( var fillMino = 0; fillMino < 7; fillMino++){
+		if (legalPiece(fillMino)){
+			console.log(fillMino);
+			fillArray.push(fillMino);
+		}
+	}
+	
+	fillArray = shuffleArray(fillArray);
+	reqBag = reqBag.concat(fillArray);
+	
+	// Adding the reqBag to the end.
+	var i = reqBag.length - 1;
+	bag = [reqBag[i]];
+	for (i--; i >=0; i--){
+		bag.push(reqBag[i]);
+	}
+	
+	
+	if( bag.length < 5){
+		// Extend the array with a new bag.
+		bag = shuffleBag().concat(bag);
+	}
+		
+	reqBag = [];
+	bagEdit = false;
+
+}
+
+function endBagEditAlt(){
+	/*
+	Must fill out the reqBag with the remainder of the pieces needed to keep it legal.
+	Must add it to the bag backwards.
+	*/
+
+	var toAdd = [];
+	//shuffleArray(array);
+	
+	/*
+	Example where requests surpass first bag:
+        indexes = [0,1,2,3,4,5,6,  7,8,9,10]	, len = 11
+	Suppose bag = [0,1,2,3,4,5,6,  0,1,2, 3]
+	Requests = [3,2,1,0,  0,1,2,3]
+	fill out with [4,5,6]
+	
+	
+	-----
+	
+	
+	Example where requests surpass the first bag:
+	    indexes = [0,1,2,3,4,5,6,  7,8,9,10]	, len = 11
+	Suppose bag = [0,1,2,3,4,5,6,  0,1,2, 3]
+	Requests = [0,1] (implies player requested in order 1, 0 bc flipping)
+	fill out with [2,3]
+	
+	-> Must use candidates within the first bag
+	  - Candidates can be accessed as follows:
+	  - go from startIdx -> bag.len - 1 (e.g. i in range [7, 10]
+	  - startIdx = bag.len - bag.len % 7 (e.g., 11 - 4 = 7)
+	-> Check each candidate in the bag. If it's within the reqBag, don't add it.
+	  - for(candidate in bag) {
+			if (same candidate in reqBag){
+			dont add
+			}
+	
+	*/
+	
+	// When our requests do not surpass the first bag.
+	if (reqBag.length < bag.length % 7){
+		// We can only fill out our reqBag with valid candidates from the current bag.
+		//new shit here
+		var startIdx = bag.length - (bag.length % 7);
+		
+		// Go through the first bag.
+		for ( var i = startIdx; i < bag.length; i++){
+		
+		}
+		
+		
+		//old shit below
+		for (var i = bag.length - 1; i != bag.length - 1 - bag.length % 7; i--){
+			var notInReqBag = true;
+			for ( var j = 0; j < reqBag.length; j++){
+			
+				if (bag[i] == reqBag[j]){
+					j = 10; // Break out of the loop if the mino is already in reqBag.
+					notInReqBag = false;
+				}
+			}
+			if (notInReqBag){
+				toAdd.push(bag[i]);
+			}
+		}
+		
+	} else { // Our requests must surpass the first bag.
+		// Part of a fresh  7bag. Look backwards to disqualify candidates.
+		
+		// Which candidates are legal? 
+		// reqBag.len - curBag.len %7
+	}
+
+	return;
+}
+
+
 function endBagEdit(){
 	// Fill out the rest of the reqBag.
 	var candidates = shuffleBag();
@@ -327,13 +473,18 @@ function endBagEdit(){
 		}
 		if(addMe) toAdd.push(candidates[j]);
 	}
-	for(var i = 0; i < toAdd.length;i++){
-		reqBag.push(toAdd[i]);
+	/*
+	 Bag is built backwards. So, IJLOSTZ will come out as ZTSOLJI.
+	  
+	*/
+	for(var i = 0; i < reqBag.length;i++){
+		toAdd.push(reqBag[i]);
 	}
-	console.log(reqBag);
+	console.log("To add:");
+	console.log(toAdd);
 	bag = [];
-	for(var i = reqBag.length-1; i >= 0; i--){
-		bag.push(reqBag[i]);
+	for(var i = toAdd.length-1; i >= 0; i--){
+		bag.push(toAdd[i]);
 	}
 	reqBag = []
 	bagEdit = false;
@@ -358,16 +509,17 @@ function keyUnpress(e){
 }
 
 function move(){
-	if (holdLeft && (DASLeft == 0 || DASLeft > 5)){
+	var DASFrames = 10;
+	if (holdLeft && (DASLeft == 0 || DASLeft > DASFrames)){
 		if (validMove(-1, 0, minoNet)) minoX--;
 	}
-	if (holdRight && (DASRight == 0 || DASRight > 5)){	
+	if (holdRight && (DASRight == 0 || DASRight > DASFrames)){	
 		if (validMove(1, 0, minoNet)) minoX++;
 	}
-	if (holdUp && (DASUp == 0 || DASUp > 5)){
+	if (holdUp && (DASUp == 0 || DASUp > DASFrames)){
 		if (validMove(0, 1, minoNet)) minoY++;
 	}
-	if (holdDown && (DASDown == 0 || DASDown > 5)){
+	if (holdDown && (DASDown == 0 || DASDown > DASFrames)){
 		if (validMove(0, -1, minoNet)) minoY--;
 	}
 	
@@ -442,7 +594,7 @@ function drawUI(){
 									  
 	// Export Mode display
 	canvasContext.font="15px Arial";
-	canvasContext.fillText("Export Mode: " + exportMode, 270, 60);
+	//canvasContext.fillText("Export Mode: " + exportMode, 270, 60);
 	
 	// Detailed SRS Display
 	//canvasContext.font = "20px Arial";
@@ -455,8 +607,10 @@ function drawUI(){
 	canvasContext.fillText("Hard Drop - Space", 10, 555);
 	canvasContext.fillText("Rotate CCW / CW - Z, X", 10, 570);
 	canvasContext.fillText("Hold - Left or Right Shift", 10, 585);
-	canvasContext.fillText("Export Mode - 0", 10, 600);
+	//canvasContext.fillText("Export Mode - 0", 10, 600);
 	canvasContext.fillText("Bag arranger - E", 10, 615);
+	canvasContext.fillText("I,J,L,O,S,T,Z", 10, 630);
+	canvasContext.fillText(minoCount, 10, 645);
 	
 	
 	
@@ -535,13 +689,30 @@ function drawBoard(){
 	
 }
 
+function shuffleArray(candidates){
+
+	for (var i = 0; i < candidates.length; i++){
+		var maxIdx = candidates.length - i;
+		var rIdx = Math.floor(Math.random() * maxIdx);
+		var temp = candidates[rIdx];
+		candidates[rIdx] = candidates[maxIdx - 1];
+		candidates[maxIdx - 1] = temp;
+	}
+	return candidates;
+}
+
 function shuffleBag(){
+
+	return shuffleArray([0, 1, 2, 3, 4, 5, 6]);
+}
+function shuffleBagOld(){
 
 	var newBag = [7,7,7,7,7,7,7];
 	for( var i = 0; i < 7; i++){
 		// Choose a random int between 0 - 6 inclusive
 		var rMino = Math.floor(Math.random() * (7)); // Random int between 0-6
-		// Check if it's in the array. If it is, choose another until it is unique in the array.
+		// Check if it's in the array. If it is, choose another until it is 
+		// unique in the array.
 		var unique = false;
 		
 		while(!unique){
@@ -643,10 +814,6 @@ function spinMino(CW){
 }
 
 function hardDrop(){
-    DASLeft = 0;
-    DASRight = 0;
-    DASUp = 0;
-    DASDown = 0;
     HDDelay = 0;
 	if (HDDelay != 0) return;
 	saveState();
@@ -666,6 +833,7 @@ function hardDrop(){
 		board[minoX + minoNet[i][0]][minoY + minoNet[i][1]] = minoKey;
 	}
 	
+	minoCount[minoKey - 1]++; // Debug info
 	clearLines();
 	chooseMino();
 }
@@ -1130,6 +1298,7 @@ function GameState(){
 	this.bag = bag.slice();
 	this.holdMino = holdMino;
 	this.board = Array(10);
+
 	for (var i = 0; i < 10; i++){
 		this.board[i] = board[i].slice();
 	}
@@ -1142,12 +1311,18 @@ function undo(){
 	// Save the current state into the redoLog.
 	redoLog.push(new GameState);
 	
+	
 	var gameState = eventLog.pop();
 	minoKey = gameState.mino;
 	spawnMino(minoKey - 1);
 	holdMino = gameState.holdMino;
 	board = gameState.board;
 	bag = gameState.bag;
+	
+	// Debug info
+	minoCount[minoKey-1]--;
+	
+	
 }
 
 function redo(){
@@ -1156,13 +1331,18 @@ function redo(){
 	// Save state to eventLog before redoing
 	eventLog.push( new GameState);
 	var gameState = redoLog.pop();
-		
+
+	// Debug info
+	minoCount[minoKey - 1]++;	
+	
 	// restore state.
 	minoKey = gameState.mino;
 	spawnMino(minoKey - 1);
 	holdMino = gameState.holdMino;
 	board = gameState.board;
 	bag = gameState.bag;
+	
+	
 	
 }
 
