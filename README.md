@@ -5,7 +5,7 @@ Modern Tetris simulator with added features for practicing techniques for multip
  - 7-bag randomizer
  - SRS
  - Undo/Redo buttons
- - Bag editor (WIP)
+ - Bag editor
  - SRS Wallkick Detailed Walkthrough (WIP)
  - Mino picker
  - Full keyboard controls
